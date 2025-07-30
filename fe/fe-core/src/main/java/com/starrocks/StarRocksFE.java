@@ -79,6 +79,7 @@ import java.io.RandomAccessFile;
 import java.lang.management.ManagementFactory;
 import java.nio.channels.FileLock;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class StarRocksFE {
@@ -171,17 +172,25 @@ public class StarRocksFE {
             // init and start:
             // 1. QeService for MySQL Server
             // 2. FrontendThriftServer for Thrift Server
-            // 3. HttpServer for HTTP Server
+            // 3. HttpServer for HTTP Server and optionally for HTTPS Server
             // 4. ArrowFlightSqlService for Arrow Flight SQL Server
             QeService qeService = new QeService(Config.query_port, ExecuteEnv.getInstance().getScheduler());
             FrontendThriftServer frontendThriftServer = new FrontendThriftServer(Config.rpc_port);
             HttpServer httpServer = new HttpServer(Config.http_port);
+            Optional<HttpServer> httpsServer = Optional.ofNullable(
+                    Config.enable_https ? new HttpServer(Config.https_port, true) : null);
             ArrowFlightSqlService arrowFlightSqlService = new ArrowFlightSqlService(Config.arrow_flight_port);
-
+            // Setup HTTP and HTTPS (optional).
             httpServer.setup();
-
+            if (httpsServer.isPresent()) {
+                httpsServer.get().setup();
+            }
             frontendThriftServer.start();
+            // Start HTTP and HTTPS (optional).
             httpServer.start();
+            if (httpsServer.isPresent()) {
+                httpsServer.get().start();
+            }
             qeService.start();
             arrowFlightSqlService.start();
 

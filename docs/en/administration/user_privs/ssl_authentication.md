@@ -15,12 +15,12 @@ From v3.4.1 onwards, StarRocks supports secure connections encrypted by SSL. Unl
 To enable SSL authentication in StarRocks, configure the following parameters in the FE configuration file **fe.conf**:
 
 - `ssl_keystore_location`: Specifies the path to the keystore file that stores the SSL certificate and key.
-- `ssl_keystore_type`: The keystore type. Default value: `JKS`.
+- `ssl_keystore_type`: The keystore type. Default value: empty, which means StarRocks automatically detects JKS and PKCS12. Set this parameter explicitly for formats such as BCFKS.
 - `ssl_keystore_provider`: The security provider used to load the keystore. This parameter is optional.
 - `ssl_keystore_password`: The password for accessing the keystore file. StarRocks requires this password to read the keystore file.
 - `ssl_key_password`: The password for accessing the key. StarRocks requires this password to retrieve the key from the keystore.
 - `ssl_truststore_location`: Specifies the path to the truststore file. This parameter is optional.
-- `ssl_truststore_type`: The truststore type. Default value: `JKS`.
+- `ssl_truststore_type`: The truststore type. Default value: empty, which means StarRocks automatically detects JKS and PKCS12. Set this parameter explicitly for formats such as BCFKS.
 - `ssl_truststore_provider`: The security provider used to load the truststore. This parameter is optional.
 - `ssl_truststore_password`: The password for accessing the truststore file. This parameter is required when `ssl_truststore_location` is set.
 - `ssl_protocol`: The SSL protocol used to create the SSL context. Default value: `TLSv1.2`.
@@ -33,7 +33,7 @@ Example:
 
 ```Properties
 ssl_keystore_location = // Path to the keystore file  
-ssl_keystore_type = JKS
+ssl_keystore_type =
 ssl_keystore_password = // Password for the keystore file  
 ssl_key_password = // Password for accessing the key  
 ```

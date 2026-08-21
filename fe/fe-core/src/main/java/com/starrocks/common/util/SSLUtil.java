@@ -39,7 +39,48 @@ public final class SSLUtil {
 
     public static KeyStore loadKeyStore(String filepath, String keystorePassword, String storeType,
                                         String storeProvider, String storeName) throws Exception {
-        String resolvedType = Strings.isNullOrEmpty(storeType) ? "JKS" : storeType;
+        if (Strings.isNullOrEmpty(storeType)) {
+            return loadKeyStoreAuto(filepath, keystorePassword, storeProvider, storeName);
+        }
+        return loadKeyStoreWithType(filepath, keystorePassword, storeType, storeProvider, storeName);
+    }
+
+    private static KeyStore loadKeyStoreAuto(String filepath, String keystorePassword, String storeProvider,
+                                             String storeName) throws Exception {
+        String defaultType = KeyStore.getDefaultType();
+        String[] candidateTypes = new String[] {defaultType, "JKS", "PKCS12"};
+        GeneralSecurityException loadException = null;
+        for (int i = 0; i < candidateTypes.length; i++) {
+            String candidateType = candidateTypes[i];
+            if (Strings.isNullOrEmpty(candidateType) || isDuplicatedCandidate(candidateTypes, i)) {
+                continue;
+            }
+            try {
+                return loadKeyStoreWithType(filepath, keystorePassword, candidateType, storeProvider, storeName);
+            } catch (Exception e) {
+                if (loadException == null) {
+                    loadException = new GeneralSecurityException(String.format(
+                            "Failed to load SSL %s file '%s' with auto-detected type%s",
+                            storeName, filepath,
+                            Strings.isNullOrEmpty(storeProvider) ? "" : " and provider '" + storeProvider + "'"));
+                }
+                loadException.addSuppressed(e);
+            }
+        }
+        throw loadException;
+    }
+
+    private static boolean isDuplicatedCandidate(String[] candidateTypes, int currentIndex) {
+        for (int i = 0; i < currentIndex; i++) {
+            if (candidateTypes[currentIndex].equalsIgnoreCase(candidateTypes[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static KeyStore loadKeyStoreWithType(String filepath, String keystorePassword, String resolvedType,
+                                                 String storeProvider, String storeName) throws Exception {
         KeyStore keyStore = Strings.isNullOrEmpty(storeProvider) ? KeyStore.getInstance(resolvedType) :
                 KeyStore.getInstance(resolvedType, storeProvider);
         try (InputStream keyStoreIS = new FileInputStream(filepath)) {

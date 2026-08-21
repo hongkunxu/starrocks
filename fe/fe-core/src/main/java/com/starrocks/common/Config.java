@@ -3381,10 +3381,10 @@ public class Config extends ConfigBase {
     public static String ssl_keystore_location = "";
 
     /**
-     * the keystore type
+     * the keystore type. Empty means auto detection.
      */
     @ConfField
-    public static String ssl_keystore_type = "JKS";
+    public static String ssl_keystore_type = "";
 
     /**
      * the keystore security provider
@@ -3411,10 +3411,10 @@ public class Config extends ConfigBase {
     public static String ssl_truststore_location = "";
 
     /**
-     * the truststore type
+     * the truststore type. Empty means auto detection.
      */
     @ConfField
-    public static String ssl_truststore_type = "JKS";
+    public static String ssl_truststore_type = "";
 
     /**
      * the truststore security provider

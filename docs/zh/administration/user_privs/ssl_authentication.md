@@ -14,12 +14,12 @@ sidebar_position: 40
 要在 StarRocks 中启用 SSL 认证，需要在 FE 配置文件 **fe.conf** 中配置以下参数：
 
 - `ssl_keystore_location`：指定存储 SSL 证书和密钥的 keystore 文件路径。
-- `ssl_keystore_type`：keystore 类型。默认值为 `JKS`。
+- `ssl_keystore_type`：keystore 类型。默认值为空，表示 StarRocks 自动识别 JKS 和 PKCS12。如需使用 BCFKS 等格式，需要显式配置该参数。
 - `ssl_keystore_provider`：用于加载 keystore 的安全 provider。该参数为可选项。
 - `ssl_keystore_password`：keystore 文件的访问密码，StarRocks 读取 keystore 文件时需要提供该密码。
 - `ssl_key_password`：密钥的访问密码，StarRocks 读取 keystore 文件中的密钥时需要提供该密码。
 - `ssl_truststore_location`：指定 truststore 文件路径。该参数为可选项。
-- `ssl_truststore_type`：truststore 类型。默认值为 `JKS`。
+- `ssl_truststore_type`：truststore 类型。默认值为空，表示 StarRocks 自动识别 JKS 和 PKCS12。如需使用 BCFKS 等格式，需要显式配置该参数。
 - `ssl_truststore_provider`：用于加载 truststore 的安全 provider。该参数为可选项。
 - `ssl_truststore_password`：truststore 文件的访问密码。配置 `ssl_truststore_location` 时需要配置该参数。
 - `ssl_protocol`：创建 SSL context 使用的 SSL 协议。默认值为 `TLSv1.2`。
@@ -32,7 +32,7 @@ sidebar_position: 40
 
 ```Properties
 ssl_keystore_location = // keystore 文件的路径
-ssl_keystore_type = JKS
+ssl_keystore_type =
 ssl_keystore_password = // keystore 文件的密码
 ssl_key_password = // 密钥的密码
 ```

@@ -16,11 +16,10 @@ package com.starrocks.mysql.ssl;
 
 import com.google.common.base.Strings;
 import com.starrocks.common.Config;
+import com.starrocks.common.util.SSLUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.SecureRandom;
 import javax.net.ssl.KeyManagerFactory;
@@ -44,28 +43,27 @@ public class SSLContextLoader {
     }
 
     private static SSLContext createSSLContext() throws Exception {
-        KeyStore keyStore = KeyStore.getInstance("JKS");
-        try (InputStream keyStoreIS = new FileInputStream(Config.ssl_keystore_location)) {
-            keyStore.load(keyStoreIS, Config.ssl_keystore_password.toCharArray());
-        }
+        SSLUtil.registerSecurityProviderIfNeeded(SSLContextLoader.class);
+
+        KeyStore keyStore = SSLUtil.loadKeyStore(Config.ssl_keystore_location, Config.ssl_keystore_password,
+                Config.ssl_keystore_type, Config.ssl_keystore_provider, "keystore");
         KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
         kmf.init(keyStore, Config.ssl_key_password.toCharArray());
 
         SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
         TrustManager[] trustManagers = null;
         if (!Strings.isNullOrEmpty(Config.ssl_truststore_location)) {
-            trustManagers = createTrustManagers(Config.ssl_truststore_location, Config.ssl_truststore_password);
+            trustManagers = createTrustManagers(Config.ssl_truststore_location, Config.ssl_truststore_password,
+                    Config.ssl_truststore_type, Config.ssl_truststore_provider);
         }
         sslContext.init(kmf.getKeyManagers(), trustManagers, new SecureRandom());
 
         return sslContext;
     }
 
-    private static TrustManager[] createTrustManagers(String filepath, String keystorePassword) throws Exception {
-        KeyStore trustStore = KeyStore.getInstance("JKS");
-        try (InputStream trustStoreIS = new FileInputStream(filepath)) {
-            trustStore.load(trustStoreIS, keystorePassword.toCharArray());
-        }
+    private static TrustManager[] createTrustManagers(String filepath, String keystorePassword,
+                                                      String storeType, String storeProvider) throws Exception {
+        KeyStore trustStore = SSLUtil.loadKeyStore(filepath, keystorePassword, storeType, storeProvider, "truststore");
         TrustManagerFactory trustFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustFactory.init(trustStore);
         return trustFactory.getTrustManagers();
